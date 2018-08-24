@@ -434,9 +434,19 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\gpio.c</FilePath>
+            </File>
+            <File>
               <FileName>pomocni.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\pomocni.c</FilePath>
+              <FilePath>.\src\pomocni.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\uart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -457,6 +467,16 @@
               <FileName>timers.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\inc\timers.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\gpio.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\uart.h</FilePath>
             </File>
           </Files>
         </Group>

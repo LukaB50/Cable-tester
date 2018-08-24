@@ -1,6 +1,7 @@
 #include "lpc17xx.h"
 #include <stdbool.h>
 #include "gpio.h"
+#include "timers.h"
 
 void GPIO_PinWrite(uint8_t pinNumber, uint8_t pinValue)
 {
@@ -48,14 +49,14 @@ uint8_t GPIO_PinRead(uint8_t pinNumber)
     return returnStatus;
 }
 
-void postavi_ulaze(uint8_t adresa, uint8_t demux){
+void adresiraj_ulaz(uint8_t mux, uint8_t adresa){
 	uint8_t b0,b1,b2;
 	
-	b0=adresa&0x1;
-	b1=adresa&0x2;
-	b2=adresa&0x4;
+	b0=adresa & 0x1;
+	b1=adresa & 0x2;
+	b2=adresa & 0x4;
 
-	switch(demux){
+	switch(mux){
 		
 		case 0: 
 			GPIO_PinWrite(A16, b0);
@@ -89,28 +90,30 @@ void postavi_ulaze(uint8_t adresa, uint8_t demux){
 	}
 }
 
-void read_inputs(uint8_t demux, uint8_t adresa, uint8_t aktivni_pin, bool *p){
+void procitaj_ulaze(uint8_t aktivni_pin, uint8_t *p){
 	int i,j;
 	uint8_t ulaz;
 	
-	for(i=0;i<5;i++){				//5 demuxa
-		for(j=0;j<=7;j++){		//8 izlaza demuxa
-			postavi_ulaze(j,i);
-			switch(demux){
+	for(i = 0; i < 5; i++){				//5 muxeva
+		for(j = 0; j < 8; j++){			//8 ulaza muxeva
+			adresiraj_ulaz(i, j);
+			switch( i ){
 				case 0: ulaz=L1; break;
 				case 1: ulaz=L2; break;
 				case 2: ulaz=L3; break;
 				case 3: ulaz=L4; break;
 				case 4: ulaz=L5; break;
 			}
-			if(GPIO_PinRead(ulaz)==true)		//provjerit sta tocno vraca PinRead, da se zna s cim treba usporedit
-					*(p+aktivni_pin*MAXPINS+i*5+j)=true;
+			ms_delay(2);
+			if(GPIO_PinRead(ulaz)==0x01)															//provjerit sta tocno vraca PinRead, da se zna s cim treba usporedit
+					*(p+aktivni_pin*MAXPINS+i*8+j)=0x01;
 		}
-	}	
+		ms_delay(2);
+	}
 	return;
 }
 
-void postavi_izlaz(uint8_t adresa, uint8_t demux){
+void postavi_izlaz(uint8_t demux, uint8_t adresa){
 	uint8_t b0,b1,b2;
 	
 	b0=adresa&0x1;
@@ -155,3 +158,4 @@ void postavi_izlaz(uint8_t adresa, uint8_t demux){
 			break;
 	}
 }
+

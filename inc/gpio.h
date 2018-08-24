@@ -16,8 +16,8 @@
 #define A10	P0_24
 #define A11	P0_25
 #define A12	P0_26
-#define A13	P0_27
-#define A14	P0_28
+#define A13	P1_23
+#define A14	P1_24
 #define A15	P0_29
 #define A16	P0_30
 #define A17 P1_0
@@ -47,9 +47,9 @@
 #define L4 P2_5
 #define L5 P2_6
 
-#define MAXRED 5
-#define MAXSTUPAC	5
-#define MAXPINS 20		//ima mjesta za 23 pina, onda radi (provjeriti), za 24 ne radi
+#define MAXRED 10
+#define MAXSTUPAC 10
+#define MAXPINS 40
 
 #define  util_GetBitMask(bit)          ((uint32_t)1<<(bit))
 #define  util_BitSet(x,bit)            ((x) |=  util_GetBitMask(bit))
@@ -63,9 +63,9 @@
 
 void GPIO_PinWrite(uint8_t pinNumber, uint8_t pinValue);
 uint8_t GPIO_PinRead(uint8_t pinNumber);
-void postavi_ulaze(uint8_t adresa, uint8_t demux);
-void read_inputs(uint8_t demux, uint8_t adresa, uint8_t aktivni_pin, bool *p);
-void postavi_izlaz(uint8_t adresa, uint8_t demux);
+void adresiraj_ulaz(uint8_t mux, uint8_t adresa);
+void procitaj_ulaze(uint8_t aktivni_pin, uint8_t *p);
+void postavi_izlaz(uint8_t demux, uint8_t adresa);
 
 
 #define B(x) S_to_binary_(#x)
