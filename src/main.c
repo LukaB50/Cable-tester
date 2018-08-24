@@ -70,16 +70,49 @@ void posalji_matricu (uint8_t *p){
 	uart_TxChar( '&' );			//zavrsetak
 }
 
-int main()
-{
+int dodaj_novi(void){
+	
 	uint8_t i,j;
 	uint8_t ispravan_pinout[MAXPINS][MAXPINS] = {0};
 	uint8_t *ispravan;
 	
+	ispravan=&ispravan_pinout[0][0];
+	
+	//saznaj ispravan pinout
+	for(i = 0; i < 5; i++){				//5 demuxa
+		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
+			GPIO_PinWrite(LED_OK, 1);
+			postavi_izlaz(i, j);
+			ms_delay( 50 );
+			procitaj_ulaze(i * 8 + j, ispravan);
+		}
+	GPIO_PinWrite(LED_OK,0);
+	GPIO_PinWrite(OE1,1);
+	GPIO_PinWrite(OE2,1);
+	GPIO_PinWrite(OE3,1);
+	GPIO_PinWrite(OE4,1);
+	GPIO_PinWrite(OE5,1);
+	ms_delay(50);
+	}
+
+	posalji_matricu(ispravan);
+	
+	uart_TxChar('.');
+	uart_TxChar('.');
+	uart_TxChar('.');
+	uart_TxChar('\n');
+	
+	return 1;
+	
+}
+
+int main()
+{
+	char odabir;
+	int res;
+	
 //	bool ocitani_pinout[MAXPINS][MAXPINS]={false};
 //	bool *ocitani;
-	
-	ispravan=&ispravan_pinout[0][0];
 //	ocitani=&ocitani_pinout[0][0];
 
 	SystemInit();           //Clock and PLL configuration 
@@ -104,34 +137,13 @@ int main()
 	GPIO_PinWrite(OE5,1);
 	
 	while(1){
-//saznaj ispravan pinout
-	for(i = 0; i < 5; i++){				//5 demuxa
-		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
-			GPIO_PinWrite(LED_OK, 1);
-			postavi_izlaz(i, j);
-			ms_delay( 50 );
-			procitaj_ulaze(i * 8 + j, ispravan);
-		}
-	GPIO_PinWrite(LED_OK,0);
-	GPIO_PinWrite(OE1,1);
-	GPIO_PinWrite(OE2,1);
-	GPIO_PinWrite(OE3,1);
-	GPIO_PinWrite(OE4,1);
-	GPIO_PinWrite(OE5,1);
-	ms_delay(50);
-	}
-
-	posalji_matricu(ispravan);
-	//reset matrice zbog ponovnog slanja, ne smije samo nadodavat elemente (samo za test)
-	for(i=0;i<MAXPINS;i++)
-		for(j=0;j<MAXPINS;j++)
-			*(ispravan+i*MAXPINS+j)=0;
-	
-		uart_TxChar('.');
-		uart_TxChar('.');
-		uart_TxChar('.');
-		ms_delay(500);
-		uart_TxChar('\n');
+		odabir = uart_RxChar();
+		while( odabir != 'A'  &&  odabir != 'B' )
+			odabir=uart_RxChar();
+		if( odabir == 'A' )
+			res = dodaj_novi();					//na temelju res mozemo vratit poruku u aplikaciju da li je uspio ocitat ili ne
+//	else if ( odabir == 'B' )
+//		res = provjeri_pinout();
 	}
 
 }
