@@ -46,26 +46,44 @@ static unsigned long S_to_binary_(const char *s)
 //		LPC_UART1->THR=ch;
 //}
 void posalji_matricu (uint8_t *p){
-	int i, j;
+	int i, j,flag;
+	int stanje;
+	
 	uart_TxChar('$');					//pocetak
+	
 	for(i = 0; i < MAXPINS; i++){
-		if(i<10){
-			uart_TxChar(' ');
-			uart_TxChar( i + '0' );
-		}
-		else{
-			uart_TxChar( i/10 + '0' );
-			uart_TxChar( i%10 + '0' );
-		}
-		//uart_TxChar( '#' );
-		uart_TxChar( ' ' );
+		flag = 0;
+		
 		for(j = 0; j < MAXPINS; j++){
-			uart_TxChar( *( p + i * MAXPINS + j ) + '0' );
-			if((j+1)%8==0)
-				uart_TxChar(' ');
+			
+			stanje = *( p + i * MAXPINS + j );
+			if(stanje){
+				
+				//ako postoji aktivirani pin, onda tek posalji ime tog reda
+				if(i<10 && !flag){
+					uart_TxChar(' ');
+					uart_TxChar( i + '0' );
+					uart_TxChar( '-' );
+					uart_TxChar( ' ' );
+					flag = 1;
+				}
+				else if (!flag){
+					uart_TxChar( i/10 + '0' );
+					uart_TxChar( i%10 + '0' );
+					uart_TxChar( '-' );
+					uart_TxChar( ' ' );
+					flag = 1;
+				}
+				
+				//posalji aktivirani pin
+				uart_TxChar( j + '0' );
+				uart_TxChar(',');
+			}
 		}
-		uart_TxChar( '#' );
-		uart_TxChar('\n');
+		if(flag){
+			uart_TxChar( '#' );
+			uart_TxChar('\n');
+		}
 	}
 	uart_TxChar( '&' );			//zavrsetak
 }
