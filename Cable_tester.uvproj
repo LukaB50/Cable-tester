@@ -399,14 +399,14 @@
           <GroupName>Startup</GroupName>
           <Files>
             <File>
-              <FileName>startup_LPC17xx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup_LPC17xx.s</FilePath>
-            </File>
-            <File>
               <FileName>system_LPC17xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\PACK_LPC1700\Keil\LPC1700_DFP\2.4.0\Device\Source\system_LPC17xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_LPC17xx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\src\startup_LPC17xx.s</FilePath>
             </File>
           </Files>
         </Group>

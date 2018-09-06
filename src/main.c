@@ -5,6 +5,9 @@
 #include "gpio.h"
 #include "uart.h"
 
+uint8_t ocitani_pinout[MAXPINS][MAXPINS] = {0};
+uint8_t ispravan_pinout[MAXPINS][MAXPINS] = {0};
+
 static unsigned long S_to_binary_(const char *s)
 {
         unsigned long long i = 0;
@@ -24,33 +27,11 @@ static unsigned long S_to_binary_(const char *s)
 //	return;
 //}
 
-////UART
-//void uart_init(void){
-//	
-//	LPC_UART1->FCR |= 0x07;		// rx & tx buffer reset
-//	LPC_UART1->LCR |= 0x83;		//8bit character, 1 stop bit, DLAB enabled
-//	LPC_UART1->FDR |= 0x10;		//Set Multiple=1 & Divisor=0
-//	LPC_UART1->DLL &= 0x0;		//set DLL to zero
-//	LPC_UART1->DLL |= 0x30;		//DLL=48
-//	LPC_UART1->DLM |= 0x5;		//DLM=5
-//	LPC_UART1->LCR &= ~(1<<7);	//clear DLAB
-//	
-//	//prepare NVIC for uart interupts
-//	
-//	//enable uart interrupts
-//	
-//}
-
-//void uart_sendChar(char ch){
-//	while(!(LPC_UART1->LSR & 0x20));
-//		LPC_UART1->THR=ch;
-//}
 void posalji_matricu (uint8_t *p){
-	int i, j,flag;
+	int i, j, flag;
 	int stanje;
 	
-	uart_TxChar('$');					//pocetak
-	
+	uart_TxChar('$');									//pocetak
 	for(i = 0; i < MAXPINS; i++){
 		flag = 0;
 		
@@ -61,17 +42,14 @@ void posalji_matricu (uint8_t *p){
 				
 				//ako postoji aktivirani pin, onda tek posalji ime tog reda
 				if(i<10 && !flag){
-					uart_TxChar(' ');
 					uart_TxChar( i + '0' );
 					uart_TxChar( '-' );
-					uart_TxChar( ' ' );
 					flag = 1;
 				}
 				else if (!flag){
 					uart_TxChar( i/10 + '0' );
 					uart_TxChar( i%10 + '0' );
 					uart_TxChar( '-' );
-					uart_TxChar( ' ' );
 					flag = 1;
 				}
 				
@@ -82,10 +60,11 @@ void posalji_matricu (uint8_t *p){
 		}
 		if(flag){
 			uart_TxChar( '#' );
-			uart_TxChar('\n');
 		}
 	}
+	uart_TxChar( '\n' );
 	uart_TxChar( '&' );			//zavrsetak
+	return;
 }
 
 int dodaj_novi(void){
@@ -94,10 +73,10 @@ int dodaj_novi(void){
 	uint8_t ispravan_pinout[MAXPINS][MAXPINS] = {0};
 	uint8_t *ispravan;
 	
-	ispravan=&ispravan_pinout[0][0];
+	ispravan = &ispravan_pinout[0][0];
 	
 	//saznaj ispravan pinout
-	for(i = 0; i < 5; i++){				//5 demuxa
+	for(i = 0; i < 5; i++){					//5 demuxa
 		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
 			GPIO_PinWrite(LED_OK, 1);
 			postavi_izlaz(i, j);
@@ -122,6 +101,107 @@ int dodaj_novi(void){
 	
 	return 1;
 	
+}
+
+void saznaj_ocitani(void){
+	
+	uint8_t i,j;
+	uint8_t* ocitani;
+	ocitani = &ocitani_pinout[0][0];
+	
+	//reset ocitane matrice na nula
+	for(i = 0; i < MAXPINS; i++)
+		for(j = 0; j < MAXPINS ; j++)
+			*(ocitani + i * MAXPINS + j)=0;
+	
+	//saznaj ocitani pinout
+	for(i = 0; i < 5; i++){					//5 demuxa
+		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
+			GPIO_PinWrite(LED_OK, 1);
+			postavi_izlaz(i, j);
+			ms_delay( 50 );
+			procitaj_ulaze(i * 8 + j, ocitani);
+		}
+	GPIO_PinWrite(LED_OK,0);
+	GPIO_PinWrite(OE1,1);
+	GPIO_PinWrite(OE2,1);
+	GPIO_PinWrite(OE3,1);
+	GPIO_PinWrite(OE4,1);
+	GPIO_PinWrite(OE5,1);
+	ms_delay(50);
+	}
+	//posalji_matricu(ocitani);
+	return;
+}
+
+void primi_ispravan(void){
+	
+	char znak;
+	uint8_t i, j;
+	uint8_t red = 0, stupac = 0;
+	uint8_t* ispravan;
+	ispravan = &ispravan_pinout[0][0];
+	
+	//reset ispravne matrice na nula
+	for(i = 0; i < MAXPINS; i++)
+		for(j = 0; j < MAXPINS ; j++)
+			*(ispravan + i * MAXPINS + j) = 0;
+	
+	//cekaj pocetak
+	znak = uart_RxChar();
+	while(znak != '$'){
+		znak = uart_RxChar();
+	}
+	
+	znak = uart_RxChar();			//dohvati znak nakon '$'
+	red = znak - 48;					//prvi znak je neki red
+	
+	znak = uart_RxChar();
+	while(znak != '&'){
+		if (znak == '-'){
+			znak = uart_RxChar();
+			stupac = znak - 48;
+		}
+		else if (znak ==','){
+			znak = uart_RxChar();
+			if (znak != '#')
+				stupac = znak - 48;
+			else{
+				znak = uart_RxChar();
+				if (znak == '\n' || znak == '&')
+					return;
+				else{
+					red = znak - 48;
+					znak = uart_RxChar();
+					continue;								//ako je znak red, onda ne upisuj dok ne pronadjes stupac
+				}
+			}
+		}
+		*(ispravan + red * MAXPINS + stupac) = 1;
+		znak = uart_RxChar();
+	}
+	return;
+}
+
+int provjeri_pinout(void){
+	
+	uint8_t i,j;
+	int rez = 1;
+	uint8_t* ispravan;
+	uint8_t* ocitani;
+	ispravan = &ispravan_pinout[0][0];
+	ocitani = &ocitani_pinout[0][0];
+	
+	primi_ispravan();
+	saznaj_ocitani();
+	
+	for(i=0; i<MAXPINS; i++)
+		for(j=0; j<MAXPINS; j++)
+			if ( (*(ispravan+i*MAXPINS+j)) != (*(ocitani+i*MAXPINS+j)) )
+				rez=0;
+	
+	return rez;
+	//dodat i vratit rezultat usporedjivanja
 }
 
 int main()
@@ -157,11 +237,12 @@ int main()
 	while(1){
 		odabir = uart_RxChar();
 		while( odabir != 'A'  &&  odabir != 'B' )
-			odabir=uart_RxChar();
+			odabir = uart_RxChar();
 		if( odabir == 'A' )
-			res = dodaj_novi();					//na temelju res mozemo vratit poruku u aplikaciju da li je uspio ocitat ili ne
-//	else if ( odabir == 'B' )
-//		res = provjeri_pinout();
+			res = dodaj_novi();
+		else if ( odabir == 'B' )
+			res = provjeri_pinout();
+			uart_TxChar(res + 48);
 	}
 
 }

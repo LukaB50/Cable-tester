@@ -12,6 +12,6 @@
 
 void uart_init(uint32_t baudrate);
 void uart_TxChar(char ch);
-char uart_RxChar();
+char uart_RxChar(void);
 
 #endif
