@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\uart.c</FilePath>
             </File>
+            <File>
+              <FileName>logic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\logic.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -477,6 +482,11 @@
               <FileName>uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\inc\uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>logic.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\logic.h</FilePath>
             </File>
           </Files>
         </Group>

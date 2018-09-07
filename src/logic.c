@@ -60,7 +60,7 @@ int dodaj_novi(void){
 		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
 			GPIO_PinWrite(LED_OK, 1);
 			postavi_izlaz(i, j);
-			ms_delay( 50 );
+			ms_delay( 5 );
 			procitaj_ulaze(i * 8 + j, ispravan);
 		}
 	GPIO_PinWrite(LED_OK,0);
@@ -69,7 +69,7 @@ int dodaj_novi(void){
 	GPIO_PinWrite(OE3,1);
 	GPIO_PinWrite(OE4,1);
 	GPIO_PinWrite(OE5,1);
-	ms_delay(50);
+	ms_delay(5);
 	}
 
 	posalji_matricu(ispravan);
@@ -99,7 +99,7 @@ void saznaj_ocitani(void){
 		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
 			GPIO_PinWrite(LED_OK, 1);
 			postavi_izlaz(i, j);
-			ms_delay( 50 );
+			//ms_delay( 1 );
 			procitaj_ulaze(i * 8 + j, ocitani);
 		}
 	GPIO_PinWrite(LED_OK,0);
@@ -108,9 +108,8 @@ void saznaj_ocitani(void){
 	GPIO_PinWrite(OE3,1);
 	GPIO_PinWrite(OE4,1);
 	GPIO_PinWrite(OE5,1);
-	ms_delay(50);
+	//ms_delay(1);
 	}
-	//posalji_matricu(ocitani);
 	return;
 }
 
@@ -175,11 +174,27 @@ int provjeri_pinout(void){
 	primi_ispravan();
 	saznaj_ocitani();
 	
-	for(i=0; i<MAXPINS; i++)
-		for(j=0; j<MAXPINS; j++)
-			if ( (*(ispravan+i*MAXPINS+j)) != (*(ocitani+i*MAXPINS+j)) )
+	for(i=0; i<MAXPINS; i++){
+		for(j=0; j<MAXPINS; j++){
+			if ( (*(ispravan+i*MAXPINS+j)) != (*(ocitani+i*MAXPINS+j)) ){
 				rez=0;
-	
+				uart_TxChar(rez + 48);
+				if( *(ocitani+i*MAXPINS+j) == 0 ){
+					//no connection
+					uart_TxChar('C');
+					uart_TxChar(i+1);
+					uart_TxChar(j+1);
+				}
+				else if( *(ocitani+i*MAXPINS+j) == 1 ){
+					//short
+					uart_TxChar('D');
+					uart_TxChar(i+1);
+					uart_TxChar(j+1);
+				}
+			}
+		}
+	}
+	uart_TxChar('&');
 	return rez;
 	//dodat i vratit rezultat usporedjivanja
 }
