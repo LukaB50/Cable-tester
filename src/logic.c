@@ -21,14 +21,8 @@ void posalji_matricu (uint8_t* p){
 			if(stanje){
 				
 				//ako postoji aktivirani pin, onda tek posalji ime tog reda
-				if(i<10 && !flag){
+				if(!flag){
 					uart_TxChar( i + '0' );
-					uart_TxChar( '-' );
-					flag = 1;
-				}
-				else if (!flag){
-					uart_TxChar( i/10 + '0' );
-					uart_TxChar( i%10 + '0' );
 					uart_TxChar( '-' );
 					flag = 1;
 				}
