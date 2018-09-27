@@ -158,7 +158,7 @@ void primi_ispravan(void){
 
 int provjeri_pinout(void){
 	
-	uint8_t i,j;
+	uint8_t i,j,k;
 	int rez = 1;
 	uint8_t* ispravan;
 	uint8_t* ocitani;
@@ -166,29 +166,43 @@ int provjeri_pinout(void){
 	ocitani = &ocitani_pinout[0][0];
 	
 	primi_ispravan();
-	saznaj_ocitani();
 	
-	for(i=0; i<MAXPINS; i++){
-		for(j=0; j<MAXPINS; j++){
-			if ( (*(ispravan+i*MAXPINS+j)) != (*(ocitani+i*MAXPINS+j)) ){
-				rez=0;
-				uart_TxChar(rez + 48);
-				if( *(ocitani+i*MAXPINS+j) == 0 ){
-					//no connection
-					uart_TxChar('C');
-					uart_TxChar(i+1);
-					uart_TxChar(j+1);
-				}
-				else if( *(ocitani+i*MAXPINS+j) == 1 ){
-					//short
-					uart_TxChar('D');
-					uart_TxChar(i+1);
-					uart_TxChar(j+1);
+	for( k = 0; k < 100; k++){
+		GPIO_PinWrite(LED_ERROR, 1);
+		saznaj_ocitani();
+	
+		for(i = 0; i < MAXPINS; i++){
+			for(j = 0; j < MAXPINS; j++){
+				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
+					rez = 0;
+					uart_TxChar(rez + 48);
+					if( *(ocitani + i * MAXPINS + j) == 0 ){
+						//no connection
+						uart_TxChar('C');
+						uart_TxChar( i + 1 );
+						uart_TxChar( j + 1 );
+					}
+					else if( *(ocitani + i * MAXPINS + j) == 1 ){
+						//short
+						uart_TxChar('D');
+						uart_TxChar( i + 1 );
+						uart_TxChar( j + 1 );
+					}
 				}
 			}
 		}
+		if (rez == 0){
+			uart_TxChar('&');
+			break;
+		}
+		GPIO_PinWrite(LED_ERROR, 0);
 	}
-	uart_TxChar('&');
+	
 	return rez;
-	//dodat i vratit rezultat usporedjivanja
+}
+
+int constant_test(void){
+	
+	primi_ispravan();
+	
 }

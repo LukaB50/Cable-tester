@@ -49,7 +49,10 @@ int main()
 			res = dodaj_novi();
 		else if ( odabir == 'B' )
 			res = provjeri_pinout();
-			uart_TxChar(res + 48);
+			if (res)
+				uart_TxChar(res + 48);
+		else if ( odabir == 'B' )
+			res = constant_test();
 	}
 
 }

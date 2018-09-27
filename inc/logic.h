@@ -6,5 +6,6 @@ int dodaj_novi(void);
 void saznaj_ocitani(void);
 void primi_ispravan(void);
 int provjeri_pinout(void);
+int constant_test(void);
 
 #endif
