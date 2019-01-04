@@ -54,7 +54,7 @@ int dodaj_novi(void){
 		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
 			GPIO_PinWrite(LED_OK, 1);
 			postavi_izlaz(i, j);
-			ms_delay( 5 );
+			//ms_delay( 1 );
 			procitaj_ulaze(i * 8 + j, ispravan);
 		}
 	GPIO_PinWrite(LED_OK,0);
@@ -63,7 +63,7 @@ int dodaj_novi(void){
 	GPIO_PinWrite(OE3,1);
 	GPIO_PinWrite(OE4,1);
 	GPIO_PinWrite(OE5,1);
-	ms_delay(5);
+	//ms_delay(1);
 	}
 
 	posalji_matricu(ispravan);
@@ -88,13 +88,13 @@ void saznaj_ocitani(void){
 		for(j = 0; j < MAXPINS ; j++)
 			*(ocitani + i * MAXPINS + j)=0;
 	
-	//saznaj ocitani pinout
+	//saznaj ocitani pinout					//traje 40*80ms=3200ms=3,2sec
 	for(i = 0; i < 5; i++){					//5 demuxa
 		for(j = 0; j < 8 ; j++){			//8 izlaza demuxa - adresa
 			GPIO_PinWrite(LED_OK, 1);
 			postavi_izlaz(i, j);
 			//ms_delay( 1 );
-			procitaj_ulaze(i * 8 + j, ocitani);
+			procitaj_ulaze(i * 8 + j, ocitani);		//traje 80ms
 		}
 	GPIO_PinWrite(LED_OK,0);
 	GPIO_PinWrite(OE1,1);
@@ -167,9 +167,9 @@ int provjeri_pinout(void){
 	
 	primi_ispravan();
 	
-	for( k = 0; k < 100; k++){
+	for( k = 0; k < 1; k++){						// sporo !  cca 4sec za k=1, 36sec za k=10
 		GPIO_PinWrite(LED_ERROR, 1);
-		saznaj_ocitani();
+		saznaj_ocitani();									// traje 3,2sec
 	
 		for(i = 0; i < MAXPINS; i++){
 			for(j = 0; j < MAXPINS; j++){
@@ -201,8 +201,50 @@ int provjeri_pinout(void){
 	return rez;
 }
 
-int constant_test(void){
+int constant_test(void){			//ne detektira kratko odspajanje
+	int i,j, rez;
+	uint8_t* ispravan;
+	uint8_t* ocitani;
+	ispravan = &ispravan_pinout[0][0];
+	ocitani = &ocitani_pinout[0][0];
 	
 	primi_ispravan();
 	
+	while(1){
+	
+	saznaj_ocitani();
+	rez = 1;
+	GPIO_PinWrite(LED_OK, 0);
+	//usporedi i posalji greske
+	for(i = 0; i < MAXPINS; i++){
+			for(j = 0; j < MAXPINS; j++){
+				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
+					if(rez != 0)
+						uart_TxChar(0 + 48);
+					rez = 0;
+					if( *(ocitani + i * MAXPINS + j) == 0 ){
+						//no connection
+						uart_TxChar('C');
+						uart_TxChar( i + 1 );
+						uart_TxChar( j + 1 );
+					}
+					else if( *(ocitani + i * MAXPINS + j) == 1 ){
+						//short
+						uart_TxChar('D');
+						uart_TxChar( i + 1 );
+						uart_TxChar( j + 1 );
+					}
+				}
+			}
+	}
+	GPIO_PinWrite(LED_OK, 1);
+	if( rez == 0 ){
+			GPIO_PinWrite(LED_OK, 0);
+			GPIO_PinWrite(LED_ERROR, 1);
+			uart_TxChar('&');
+			break;
+	}
+	}
+	
+	return 0;
 }

@@ -23,7 +23,7 @@ int main()
 	SystemInit();           //Clock and PLL configuration 
 	config_pin();
 	timers_init();
-	uart_init(9600);
+	uart_init(115200);
 
 //	// interrupt
 ////	LPC_SCU->PINTSEL0 |= (0x3)<<0 | (0x6)<<5;	//Gpio6[3] je odabran za interrupt0
@@ -43,16 +43,16 @@ int main()
 	
 	while(1){
 		odabir = uart_RxChar();
-		while( odabir != 'A'  &&  odabir != 'B' )
+		while( odabir != 'A'  &&  odabir != 'B' &&  odabir != 'C' )
 			odabir = uart_RxChar();
 		if( odabir == 'A' )
 			res = dodaj_novi();
 		else if ( odabir == 'B' )
 			res = provjeri_pinout();
-			if (res)
-				uart_TxChar(res + 48);
-		else if ( odabir == 'B' )
+		else if ( odabir == 'C' )
 			res = constant_test();
+		if (res && odabir != 'C')
+				uart_TxChar(res + 48);
 	}
 
 }

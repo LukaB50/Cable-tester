@@ -67,7 +67,6 @@ void adresiraj_ulaz(uint8_t mux, uint8_t adresa);
 void procitaj_ulaze(uint8_t aktivni_pin, uint8_t *p);
 void postavi_izlaz(uint8_t demux, uint8_t adresa);
 
-
 #define B(x) S_to_binary_(#x)
 
 typedef enum
