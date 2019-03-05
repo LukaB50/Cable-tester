@@ -18,21 +18,12 @@
 int main()
 {
 	char odabir;
-	int res;
+	int res, i;
 
 	SystemInit();           //Clock and PLL configuration 
 	config_pin();
 	timers_init();
 	uart_init(115200);
-
-//	// interrupt
-////	LPC_SCU->PINTSEL0 |= (0x3)<<0 | (0x6)<<5;	//Gpio6[3] je odabran za interrupt0
-////	LPC_GPIO_PIN_INT->ISEL |= (0<<0);					//1=low level sensitive, 0=edge sesititve; interrupt0 u PINTSEL0 registru
-////	LPC_GPIO_PIN_INT->IENF |= (1<<0);					//enable interrupt on falling edge
-////	NVIC_ClearPendingIRQ(PIN_INT0_IRQn);			//brise pending da ne bi nakon Enable-a odmah usao u prekid ako je slucajno pending postavljen
-////	NVIC_SetPriority(PIN_INT0_IRQn, 2);				//priority moraju biti parni brojevi, 0 najjaci
-////	NVIC_EnableIRQ(PIN_INT0_IRQn);
-
 
 	//onemoguci sve demuxeve
 	GPIO_PinWrite(OE1,1);

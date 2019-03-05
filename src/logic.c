@@ -130,21 +130,21 @@ void primi_ispravan(void){
 	red = znak - 48;					//prvi znak je neki red
 	
 	znak = uart_RxChar();
-	while(znak != '&'){
-		if (znak == '-'){
+	while(znak != '&'){				// '&' kraj poruke
+		if (znak == '-'){				// iza '-' uvijek ide stupac
 			znak = uart_RxChar();
 			stupac = znak - 48;
 		}
-		else if (znak ==','){
+		else if (znak ==','){		
 			znak = uart_RxChar();
-			if (znak != '#')
+			if (znak != '#')			// ako iza ',' nije '#', onda je stupac
 				stupac = znak - 48;
-			else{
+			else{											// ako je '#'
 				znak = uart_RxChar();
-				if (znak == '\n' || znak == '&')
+				if (znak == '\n' || znak == '&')	// ako je kraj poruke nakon '#'
 					return;
 				else{
-					red = znak - 48;
+					red = znak - 48;		// ako nije kraj poruke, onda je iduci znak=redak
 					znak = uart_RxChar();
 					continue;								//ako je znak red, onda ne upisuj dok ne pronadjes stupac
 				}
@@ -174,8 +174,10 @@ int provjeri_pinout(void){
 		for(i = 0; i < MAXPINS; i++){
 			for(j = 0; j < MAXPINS; j++){
 				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
+					
 					rez = 0;
 					uart_TxChar(rez + 48);
+					
 					if( *(ocitani + i * MAXPINS + j) == 0 ){
 						//no connection
 						uart_TxChar('C');
@@ -201,27 +203,36 @@ int provjeri_pinout(void){
 	return rez;
 }
 
-int constant_test(void){			//ne detektira kratko odspajanje
+int constant_test(void){
 	int i,j, rez;
 	uint8_t* ispravan;
 	uint8_t* ocitani;
 	ispravan = &ispravan_pinout[0][0];
 	ocitani = &ocitani_pinout[0][0];
 	
-	primi_ispravan();
+//	// interrupt
+//	LPC_SCU->PINTSEL0 |= (0x3)<<0 | (0x6)<<5;	//Gpio6[3] je odabran za interrupt0
+//	LPC_GPIO_PIN_INT->ISEL |= (0<<0);					//1=low level sensitive, 0=edge sesititve; interrupt0 u PINTSEL0 registru
+//	LPC_GPIO_PIN_INT->IENF |= (1<<0);					//enable interrupt on falling edge
+//	NVIC_ClearPendingIRQ(PIN_INT0_IRQn);			//brise pending da ne bi nakon Enable-a odmah usao u prekid ako je slucajno pending postavljen
+//	NVIC_SetPriority(PIN_INT0_IRQn, 2);				//priority moraju biti parni brojevi, 0 najjaci
+//	NVIC_EnableIRQ(PIN_INT0_IRQn);
 	
+	primi_ispravan();
+	ms_delay(500);
 	while(1){
 	
 	saznaj_ocitani();
 	rez = 1;
 	GPIO_PinWrite(LED_OK, 0);
+	
 	//usporedi i posalji greske
 	for(i = 0; i < MAXPINS; i++){
 			for(j = 0; j < MAXPINS; j++){
 				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
-					if(rez != 0)
-						uart_TxChar(0 + 48);
-					rez = 0;
+					rez = 0;									//0-neispravan
+					uart_TxChar(rez + 48);		
+					
 					if( *(ocitani + i * MAXPINS + j) == 0 ){
 						//no connection
 						uart_TxChar('C');
@@ -246,5 +257,5 @@ int constant_test(void){			//ne detektira kratko odspajanje
 	}
 	}
 	
-	return 0;
+	return 0;		//napravit samo return, ne vraca nista
 }
