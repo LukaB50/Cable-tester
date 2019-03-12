@@ -6,15 +6,6 @@
 #include "uart.h"
 #include "logic.h"
 
-//void GPIO0_IRQHandler(void){					//naziv prekida pise u startup.s
-//	LPC_GPIO_PIN_INT->FALL |= (1<<0);		//clear falling detection
-//	
-//	//prekidni potp.
-//	
-//	LPC_GPIO_PIN_INT->SIENF |= (0<<0);	//enable falling detection
-//	return;
-//}
-
 int main()
 {
 	char odabir;
@@ -24,6 +15,12 @@ int main()
 	config_pin();
 	timers_init();
 	uart_init(115200);
+	
+		// interrupt
+	LPC_SC->EXTINT = (1<<2);									//clear pending interrupts
+	LPC_SC->EXTMODE |= (1<<2);								//edge sensitive interrupt EINT2
+	LPC_SC->EXTPOLAR &= ~(1<<2);							//falling edge enable on P2.12
+	NVIC_EnableIRQ(EINT2_IRQn);    						//Enable the EINT2 interrupt
 
 	//onemoguci sve demuxeve
 	GPIO_PinWrite(OE1,1);
@@ -33,6 +30,7 @@ int main()
 	GPIO_PinWrite(OE5,1);
 	
 	while(1){
+		
 		odabir = uart_RxChar();
 		while( odabir != 'A'  &&  odabir != 'B' &&  odabir != 'C' )
 			odabir = uart_RxChar();

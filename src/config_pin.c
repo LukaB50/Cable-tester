@@ -49,12 +49,13 @@ void config_pin(void){		//promjenit pinove, tj konf nove pinove
 	LPC_PINCON->PINSEL3 &= ~(0x3<<14);	//A13	P1.23
 	LPC_PINCON->PINSEL3 &= ~(0x3<<16);	//A14	P1.24
 	
-	
 	LPC_PINCON->PINSEL4 &= ~(0x3<<4);		//L1	P2.2
 	LPC_PINCON->PINSEL4 &= ~(0x3<<6);		//L2	P2.3
 	LPC_PINCON->PINSEL4 &= ~(0x3<<8);		//L3	P2.4
 	LPC_PINCON->PINSEL4 &= ~(0x3<<10);	//L4	P2.5
 	LPC_PINCON->PINSEL4 &= ~(0x3<<12);	//L5	P2.6
+	
+	LPC_PINCON->PINSEL4 |= (0x1<<24);	//EINT2	P2.12 as interrupt
 	
 		//Pin mode
 		// 10- ni pull-up ni pull-down
@@ -65,6 +66,7 @@ void config_pin(void){		//promjenit pinove, tj konf nove pinove
 	LPC_PINCON->PINMODE4 |= (0x2)<<8;  //L3	P2.4
 	LPC_PINCON->PINMODE4 |= (0x2)<<10; //L4	P2.5
 	LPC_PINCON->PINMODE4 |= (0x2)<<12; //L5	P2.6
+	//LPC_PINCON->PINMODE4 |= (0x2)<<24; //EINT2	P2.12
 	
 		//GPIO direction 0-input 1-output gpioPORT, svaki bit u tom registru je pin
 	LPC_GPIO3->FIODIR |= (0x1)<<25;		//LED_OK    3.25
@@ -107,12 +109,13 @@ void config_pin(void){		//promjenit pinove, tj konf nove pinove
 	LPC_GPIO1->FIODIR |= (0x1)<<23;	//A30	P1.23
 	LPC_GPIO1->FIODIR |= (0x1)<<24;	//A30	P1.24
 	
-	
 	LPC_GPIO2->FIODIR &= ~(0x1<<2);	//L1	P2.2		//prvo shiftaj pa onda invertiraj
 	LPC_GPIO2->FIODIR &= ~(0x1<<3);	//L2	P2.3
 	LPC_GPIO2->FIODIR &= ~(0x1<<4);	//L3	P2.4
 	LPC_GPIO2->FIODIR &= ~(0x1<<5);	//L4	P2.5
 	LPC_GPIO2->FIODIR &= ~(0x1<<6);	//L5	P2.6		//OE1 vise ne brise jer je sad 0x1 (prije 0x3 pa bi visi bit nakon shiftanja dosa na sedmo mjesto gdje je OE1)
+	
+	//LPC_GPIO2->FIODIR &= ~(0x1<<12);	//EINT2	P2.12
 	
 		//SET GPIO to zero
 	LPC_GPIO3->FIOCLR |= (0x1)<<25;

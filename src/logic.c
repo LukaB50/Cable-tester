@@ -6,6 +6,19 @@
 
 uint8_t ocitani_pinout[MAXPINS][MAXPINS] = {0};
 uint8_t ispravan_pinout[MAXPINS][MAXPINS] = {0};
+int stop = 0;
+
+void EINT2_IRQHandler(void){					//naziv prekida pise u startup.s
+	
+	//LPC_GPIOINT->IO2IntEnF &= ~(1<<12);	//falling edge disable on P2.12
+	LPC_SC->EXTINT = (1<<2);  					// Clear Interrupt Flag
+	
+	//prekidni potp.
+	stop = 1;
+	
+	//LPC_GPIOINT->IO2IntEnF |= (1<<12);				//falling edge enable on P2.12
+	return;
+}
 
 void posalji_matricu (uint8_t* p){
 	int i, j, flag;
@@ -176,7 +189,8 @@ int provjeri_pinout(void){
 				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
 					
 					rez = 0;
-					uart_TxChar(rez + 48);
+					uart_TxChar(rez + 48);		//posalji '0' = neispravan
+					GPIO_PinWrite(LED_ERROR, 1);
 					
 					if( *(ocitani + i * MAXPINS + j) == 0 ){
 						//no connection
@@ -198,6 +212,7 @@ int provjeri_pinout(void){
 			break;
 		}
 		GPIO_PinWrite(LED_ERROR, 0);
+		GPIO_PinWrite(LED_OK, 1);
 	}
 	
 	return rez;
@@ -210,13 +225,7 @@ int constant_test(void){
 	ispravan = &ispravan_pinout[0][0];
 	ocitani = &ocitani_pinout[0][0];
 	
-//	// interrupt
-//	LPC_SCU->PINTSEL0 |= (0x3)<<0 | (0x6)<<5;	//Gpio6[3] je odabran za interrupt0
-//	LPC_GPIO_PIN_INT->ISEL |= (0<<0);					//1=low level sensitive, 0=edge sesititve; interrupt0 u PINTSEL0 registru
-//	LPC_GPIO_PIN_INT->IENF |= (1<<0);					//enable interrupt on falling edge
-//	NVIC_ClearPendingIRQ(PIN_INT0_IRQn);			//brise pending da ne bi nakon Enable-a odmah usao u prekid ako je slucajno pending postavljen
-//	NVIC_SetPriority(PIN_INT0_IRQn, 2);				//priority moraju biti parni brojevi, 0 najjaci
-//	NVIC_EnableIRQ(PIN_INT0_IRQn);
+
 	
 	primi_ispravan();
 	ms_delay(500);
@@ -236,14 +245,14 @@ int constant_test(void){
 					if( *(ocitani + i * MAXPINS + j) == 0 ){
 						//no connection
 						uart_TxChar('C');
-						uart_TxChar( i + 1 );
-						uart_TxChar( j + 1 );
+						uart_TxChar( i + 1 );		// pin na X9
+						uart_TxChar( j + 1 );		// pin na X3
 					}
 					else if( *(ocitani + i * MAXPINS + j) == 1 ){
 						//short
 						uart_TxChar('D');
-						uart_TxChar( i + 1 );
-						uart_TxChar( j + 1 );
+							uart_TxChar( i + 1 );		// pin na X9
+							uart_TxChar( j + 1 );		// pin na X3
 					}
 				}
 			}
@@ -255,7 +264,12 @@ int constant_test(void){
 			uart_TxChar('&');
 			break;
 	}
+	else if(stop){				//ako je pritisnut stop
+		uart_TxChar('S');		//salje 'S' = stop
+		stop=0;
+		break;
+	}
 	}
 	
-	return 0;		//napravit samo return, ne vraca nista
+	return 0;
 }
