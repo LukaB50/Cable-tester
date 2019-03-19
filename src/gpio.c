@@ -104,11 +104,11 @@ void procitaj_ulaze(uint8_t aktivni_pin, uint8_t *p){
 				case 3: ulaz=L4; break;
 				case 4: ulaz=L5; break;
 			}
-			ms_delay(2);
+			us_delay(10);											//bez delaya krivo ocitava  //zastoj 40*2ms=80ms, koliko treba cekat da signal dodje na drugu stranu
 			if(GPIO_PinRead(ulaz)==0x01)															//provjerit sta tocno vraca PinRead, da se zna s cim treba usporedit
 					*(p+aktivni_pin*MAXPINS+i*8+j)=0x01;
 		}
-		ms_delay(2);
+		//ms_delay(2);
 	}
 	return;
 }
