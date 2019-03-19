@@ -34,12 +34,16 @@ int main()
 		odabir = uart_RxChar();
 		while( odabir != 'A'  &&  odabir != 'B' &&  odabir != 'C' )
 			odabir = uart_RxChar();
+		
 		if( odabir == 'A' )
 			res = dodaj_novi();
+		
 		else if ( odabir == 'B' )
 			res = provjeri_pinout();
+		
 		else if ( odabir == 'C' )
 			res = constant_test();
+		
 		if (res && odabir != 'C')
 				uart_TxChar(res + 48);
 	}

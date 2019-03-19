@@ -183,13 +183,25 @@ int provjeri_pinout(void){
 	for( k = 0; k < 1; k++){						// sporo !  cca 4sec za k=1, 36sec za k=10
 		GPIO_PinWrite(LED_ERROR, 1);
 		saznaj_ocitani();									// traje 3,2sec
-	
+		
+		//provjera da li je kabel ispravno prikljucen, Kratki spoj mora biti na strani x9
+		//kratki spoj 39 i 40, 40 i 40, ali u matrici indexi krecu od 0
+		//	 Ispravno:					Neispravno:
+		//    39 | 40							39 | Nothing  (39,39=0 i 39,40=0)
+		//		40 | 40							40 | 39,40		(40,39=1 i 40,40=1)
+		if ( !ocitani_pinout[38][38] && !ocitani_pinout[38][39] && ocitani_pinout[39][38] && ocitani_pinout[39][39] ){	// ako je neispravno, posalji X
+			//		^ 39,39 = 0 ^									^ 39,40 = 0 ^							^ 40,39 = 1 ^						^ 40,40 = 1 ^
+			uart_TxChar('X');							// X = konektori su obrnuto spojeni na tester
+			GPIO_PinWrite(LED_OK, 1);
+			GPIO_PinWrite(LED_ERROR, 1);
+			return 0;											// vraca se 0 jer je to kao da rezultat nije ispravan
+		}
+		
 		for(i = 0; i < MAXPINS; i++){
 			for(j = 0; j < MAXPINS; j++){
-				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){
-					
+				if ( (*(ispravan + i * MAXPINS + j)) != (*(ocitani + i * MAXPINS + j)) ){		// ako se ocitani pin razlikuje od ispravnog
 					rez = 0;
-					uart_TxChar(rez + 48);		//posalji '0' = neispravan
+					uart_TxChar(rez + 48);				//posalji '0' = neispravan
 					GPIO_PinWrite(LED_ERROR, 1);
 					
 					if( *(ocitani + i * MAXPINS + j) == 0 ){
@@ -199,7 +211,7 @@ int provjeri_pinout(void){
 						uart_TxChar( j + 1 );
 					}
 					else if( *(ocitani + i * MAXPINS + j) == 1 ){
-						//short
+						//short connections
 						uart_TxChar('D');
 						uart_TxChar( i + 1 );
 						uart_TxChar( j + 1 );
@@ -224,17 +236,29 @@ int constant_test(void){
 	uint8_t* ocitani;
 	ispravan = &ispravan_pinout[0][0];
 	ocitani = &ocitani_pinout[0][0];
-	
-
-	
+		
 	primi_ispravan();
-	ms_delay(500);
+	ms_delay(500);		// ne radi dobro bez ovog delaya
 	while(1){
 	
 	saznaj_ocitani();
+		
+	//provjera da li je kabel ispravno prikljucen, Kratki spoj mora biti na strani x9
+	//kratki spoj 39 i 40, 40 i 40, ali u matrici indexi krecu od 0
+	//	 Ispravno:					Neispravno:
+	//    39 | 40							39 | Nothing  (39,39=0 i 39,40=0)
+	//		40 | 40							40 | 39,40		(40,39=1 i 40,40=1)
+	if ( !ocitani_pinout[38][38] && !ocitani_pinout[38][39] && ocitani_pinout[39][38] && ocitani_pinout[39][39] ){	// ako je neispravno, posalji X
+		//		^ 39,39 = 0 ^									^ 39,40 = 0 ^							^ 40,39 = 1 ^						^ 40,40 = 1 ^
+		uart_TxChar('X');							// X = konektori su obrnuto spojeni na tester
+		GPIO_PinWrite(LED_OK, 1);
+		GPIO_PinWrite(LED_ERROR, 1);
+		return 0;											// vraca se 0 jer je to kao da rezultat nije ispravan
+	}
+	
 	rez = 1;
 	GPIO_PinWrite(LED_OK, 0);
-	
+	GPIO_PinWrite(LED_ERROR, 0);
 	//usporedi i posalji greske
 	for(i = 0; i < MAXPINS; i++){
 			for(j = 0; j < MAXPINS; j++){
@@ -258,7 +282,7 @@ int constant_test(void){
 			}
 	}
 	GPIO_PinWrite(LED_OK, 1);
-	if( rez == 0 ){
+	if( rez == 0 ){									// 0 = kabel je neispravan
 			GPIO_PinWrite(LED_OK, 0);
 			GPIO_PinWrite(LED_ERROR, 1);
 			uart_TxChar('&');
@@ -267,6 +291,8 @@ int constant_test(void){
 	else if(stop){				//ako je pritisnut stop
 		uart_TxChar('S');		//salje 'S' = stop
 		stop=0;
+		GPIO_PinWrite(LED_OK, 1);
+		GPIO_PinWrite(LED_ERROR, 1);
 		break;
 	}
 	}
